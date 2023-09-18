@@ -13,11 +13,11 @@ import biz.source_code.utils.RawConsoleInput;
 public class DemoApplication implements CommandLineRunner {
 	/**
 	 * [面][行][列]
-	 * 面0：前（远离自己），1：左，2：顶，3：右，4：后（靠近自己），5：底
+	 * 面0：前（远离自己），1：左，2：顶，3：右，4：后（靠近自己），5：底，6：底展开在3的右侧时
 	 * 面展开时，第一行面0，第二行面1，2，3，第三行面4，第四行面5，
 	 * 面展开后是2为中心，分别和0，1，3，4相接，4和5相接的十字形状
 	 */
-	char[][][] a = new char[6][3][3];
+	char[][][] a = new char[7][3][3];
 	int vert = 0;	// 当前垂直位置y
 	int hori = 0;	// 当前水平位置x
 
@@ -104,6 +104,10 @@ public class DemoApplication implements CommandLineRunner {
 				}
 			}
 		}
+		// 底面5和底面6之间差180度
+		copySide(a[5], a[6]);
+		rotate(a[6], true);
+		rotate(a[6], true);
 	}
 	
 	// 面展开
@@ -113,23 +117,23 @@ public class DemoApplication implements CommandLineRunner {
 		s += "   |" + a[0][1][0] + a[0][1][1] + a[0][1][2] + "|\n";
 		s += "   |" + a[0][2][0] + a[0][2][1] + a[0][2][2] + "|\n";
 
-		s += "-----------\n";
+		s += "---------------\n";
 		s += "" + a[1][0][0] + a[1][0][1] + a[1][0][2];
 		s += "|" + a[2][0][0] + a[2][0][1] + a[2][0][2];
-		s += "|" + a[3][0][0] + a[3][0][1] + a[3][0][2] + "\n";
-		//s += "|" + a[4][0][0] + a[4][0][1] + a[4][0][2] + "\n";
+		s += "|" + a[3][0][0] + a[3][0][1] + a[3][0][2];
+		s += "|" + a[6][0][0] + a[6][0][1] + a[6][0][2] + "\n";
 
 		s += "" + a[1][1][0] + a[1][1][1] + a[1][1][2];
 		s += "|" + a[2][1][0] + a[2][1][1] + a[2][1][2];
-		s += "|" + a[3][1][0] + a[3][1][1] + a[3][1][2] + "\n";
-		//s += "|" + a[4][1][0] + a[4][1][1] + a[4][1][2] + "\n";
+		s += "|" + a[3][1][0] + a[3][1][1] + a[3][1][2];
+		s += "|" + a[6][1][0] + a[6][1][1] + a[6][1][2] + "\n";
 	
 		s += "" + a[1][2][0] + a[1][2][1] + a[1][2][2];
 		s += "|" + a[2][2][0] + a[2][2][1] + a[2][2][2];
-		s += "|" + a[3][2][0] + a[3][2][1] + a[3][2][2] + "\n";
-		//s += "|" + a[4][2][0] + a[4][2][1] + a[4][2][2] + "\n";
+		s += "|" + a[3][2][0] + a[3][2][1] + a[3][2][2];
+		s += "|" + a[6][2][0] + a[6][2][1] + a[6][2][2] + "\n";
 
-		s += "-----------\n";
+		s += "---------------\n";
 		s += "   |" + a[4][0][0] + a[4][0][1] + a[4][0][2] + "|\n";
 		s += "   |" + a[4][1][0] + a[4][1][1] + a[4][1][2] + "|\n";
 		s += "   |" + a[4][2][0] + a[4][2][1] + a[4][2][2] + "|\n";
@@ -140,6 +144,18 @@ public class DemoApplication implements CommandLineRunner {
 		s += "   |" + a[5][2][0] + a[5][2][1] + a[5][2][2] + "|\n";
 
 		return s;
+	}
+	/**
+	 * 复制一个面
+	 * @param from	源，不能为null
+	 * @param to	目的，要求尺寸不比源小，不能为null
+	 */
+	void copySide(char[][] from, char[][] to) {
+		for(int i=0; i<from.length; i++) {
+			for(int j=0; j<from[0].length; j++) {
+				to[i][j] = from[i][j];
+			}
+		}
 	}
 	
 	
@@ -183,31 +199,24 @@ public class DemoApplication implements CommandLineRunner {
 		copy(a, 2, x, -1, a, 1, x, -1);
 		// 3->2
 		copy(a, 3, x, -1, a, 2, x, -1);
+		// 6->3
+		copy(a, 6, x, -1, a, 3, x, -1);
+		// t->6
+		copy(t, 0, 0, -1, a, 6, x, -1);
 		
-		// 底面复制
-		char[][][] fivedash = new char[1][3][3];
-		for(int i=0; i<fivedash[0].length; i++) {
-			for(int j=0; j<fivedash[0][0].length; j++) {
-				fivedash[0][i][j] = a[5][i][j];
-			}
+		// 底面6复制回5
+		copySide(a[6], a[5]);
+		rotate(a[5], true);
+		rotate(a[5], true);
+		
+		switch(x) {
+		case 0:
+			rotate(a[0], true);
+			break;
+		case 2:
+			rotate(a[4], false);
+			break;
 		}
-		// 从横着看需要转180度
-		rotate(fivedash[0], true);
-		rotate(fivedash[0], true);
-		
-		// 5'->3
-		copy(fivedash, 0, x, -1, a, 3, x, -1);
-		// t->5'
-		copy(t, 0, 0, -1, fivedash, 0, x, -1);
-		// 转180度
-		rotate(fivedash[0], true);
-		rotate(fivedash[0], true);
-		// 5' -> 5 完整写回去
-		for(int i=0; i<fivedash[0].length; i++) {
-			for(int j=0; j<fivedash[0][0].length; j++) {
-				a[5][i][j] = fivedash[0][i][j];
-			}
-		}		
 	}
 	/**
 	 * 旋转
